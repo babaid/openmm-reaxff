@@ -37,6 +37,7 @@ namespace std {
 #include "openmm/RPMDIntegrator.h"
 #include "openmm/RPMDMonteCarloBarostat.h"
 #include "OpenMMDrude.h"
+#include "OpenMMReaxFF.h"
 #include "openmm/serialization/SerializationNode.h"
 #include "openmm/serialization/SerializationProxy.h"
 #include "openmm/serialization/XmlSerializer.h"
