@@ -1,7 +1,3 @@
-//
-// Created by babaid on 05.10.24.
-//
-
 #include "openmm/internal/ReaxffForceImpl.h"
 #include "openmm/internal/PuremdInterface.h"
 
@@ -9,18 +5,21 @@
 #include "openmm/Units.h"
 #include "openmm/internal/ContextImpl.h"
 #include "openmm/kernels.h"
+
 #include "omp.h"
+
 #include <algorithm>
 #include <iostream>
 #include <limits>
-#include <mutex>
 #include <sstream>
 #include <thread>
 
 using namespace OpenMM;
 using namespace std;
 
-constexpr double EvPerNmToKcalPerNm = 32.2063782682;
+
+constexpr double HartreeToKCalPerMole = 627.509474;
+constexpr double BohrToNm = 0.0529177249;
 constexpr double ProtonToCoulomb  = 1.602E-19;
 
 constexpr size_t parallel_threshold = 100;
@@ -208,33 +207,26 @@ double ReaxffForceImpl::computeForce(ContextImpl &context,
                                              const std::vector<Vec3> &positions,
                                              std::vector<Vec3> &forces)
 {
-    // double factor = context.getReaxffTemperatureRatio();
-
     // need to seperate positions
-    // next we need to seperate and flatten the QM/MM positions and convert to AA#
+    // next we need to seperate and flatten the QM/MM positions and convert to AA
     int N     = owner.getNumAtoms();
     int numQm = qmParticles.size();
     std::vector<double> qmPos, mmPos_q;
     // get the box size. move this into a function
     std::vector<double> simBoxInfo(6);
     getBoxInfo(positions, simBoxInfo);
-
-    // retrieve charges from the context. Had to introduce some changes to classes
-    // Context, ContextImpl,
-    //  UpdateStateDataKernel, CommonUpdateStateDataKernel
     
-    // flatten relevant qm positions and set charges to 0. The last step is
-    // important so no exclusions have to be set manually.
+    // flatten relevant qm positions 
     transformPosQM(positions, qmParticles, qmPos);
 
     // get relevant MM indices from a bounding box sorrounding the ReaxFF atoms
     //  ~1nm makes total sense as it is the upper taper radius, so interactions
-    //  will be 0 anyways further away
-    double bbCutoff = 1.0;
+    //  will be 0 further away anyways
     std::vector<int> relevantMMIndices;
 
     std::pair<Vec3, Vec3> bbCog = calculateBoundingBox(positions, qmParticles, bbCutoff);
-    // 3nm should be good enough
+    double bbCutoff = 1.0;
+    // 1nm should be good enough
     filterMMAtomsOMP(positions, mmParticles, bbCog, relevantMMIndices);
     
     std::vector<char> mmRS;
@@ -255,7 +247,6 @@ double ReaxffForceImpl::computeForce(ContextImpl &context,
     // merge the qm and mm forces, additionally transform the scale
     std::vector<Vec3> transformedForces(owner.getNumAtoms(), {0.0, 0.0, 0.0});
 
-    // This is a short operation, no parallelization is needed
     #pragma omp parallel for
     for (size_t i = 0; i < qmParticles.size(); ++i)
     {
@@ -272,14 +263,10 @@ double ReaxffForceImpl::computeForce(ContextImpl &context,
         transformedForces[relevantMMIndices[i]][2] = mmForces[i * 3 + 2];
     }
 
-  
-    // copy forces and transform from Hartree/Bohr to kJ/mol/nm
-
-    // is around O(n) so parallelization is useful
     #pragma omp parallel for
     for (size_t i = 0; i < forces.size(); ++i)
     {
-        forces[i] = -transformedForces[i] * EvPerNmToKcalPerNm ;
+        forces[i] = -transformedForces[i] * HartreeToKCalPerMole * BohrToNm ;
     }
 
     // done

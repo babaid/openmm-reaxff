@@ -1,7 +1,3 @@
-//
-// Created by babaid on 05.10.24.
-//
-
 #ifndef OPENMM_ReaxffForceImpl_H
 #define OPENMM_ReaxffForceImpl_H
 #include "openmm/internal/CustomCPPForceImpl.h"

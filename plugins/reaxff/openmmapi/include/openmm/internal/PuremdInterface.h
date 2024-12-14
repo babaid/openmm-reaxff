@@ -1,6 +1,3 @@
-//
-// Created by babaid on 05.10.24.
-//
 #ifndef OPENMM_PUREMDINTERFACE_H
 #define OPENMM_PUREMDINTERFACE_H
 #define QMMM

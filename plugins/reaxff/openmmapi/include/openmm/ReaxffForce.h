@@ -1,6 +1,3 @@
-//
-// Created by babaid on 05.10.24.
-//
 #ifndef OPENMM_ReaxffForce_H_
 #define OPENMM_ReaxffForce_H_
 
@@ -14,12 +11,12 @@ using namespace OpenMM;
 namespace OpenMM {
 
 /**
- * A class that introduces a puremd qmmm force.
+ * A class that introduces a ReaxFF/MM force.
  */
     class OPENMM_EXPORT_REAXFF ReaxffForce : public Force {
     public:
     /**
-     * Create a puremd force
+     * Create a ReaxFF force
      */
       ReaxffForce();
     /**
