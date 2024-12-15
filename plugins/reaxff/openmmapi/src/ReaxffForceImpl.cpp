@@ -9,31 +9,27 @@
 #include "omp.h"
 
 #include <algorithm>
-#include <iostream>
 #include <limits>
-#include <sstream>
-#include <thread>
 
 using namespace OpenMM;
 using namespace std;
 
-
 constexpr double HartreeToKCalPerMole = 627.509474;
-constexpr double BohrToNm = 0.0529177249;
-constexpr double ProtonToCoulomb  = 1.602E-19;
+constexpr double BohrToNm             = 0.0529177249;
+constexpr double ProtonToCoulomb      = 1.60217663E-19;
 
 constexpr size_t parallel_threshold = 100;
 
 // flattens the QM atom positions, converts them to angstroms and sets their
 // charges  in the context to 0
 inline void transformPosQM(const std::vector<Vec3> &positions,
-                           const std::vector<int> indices,
-                           std::vector<double> &out)
+                           const std::vector<int>   indices,
+                           std::vector<double>     &out)
 {
     out.resize(indices.size() * 3);
 
-    #pragma omp parallel for if (indices.size() > parallel_threshold)
-    
+#pragma omp parallel for if (indices.size() > parallel_threshold)
+
     for (size_t i = 0; i < indices.size(); ++i)
     {
         int Index      = indices[i];
@@ -45,14 +41,14 @@ inline void transformPosQM(const std::vector<Vec3> &positions,
 
 // flattens the MM atom positions converts them to angstroms and converts their
 // charges to coulombs
-inline void transformPosqMM(const std::vector<Vec3> &positions,
+inline void transformPosqMM(const std::vector<Vec3>   &positions,
                             const std::vector<double> &charges,
-                            const std::vector<int> &indices,
-                            std::vector<double> &out)
+                            const std::vector<int>    &indices,
+                            std::vector<double>       &out)
 {
     out.resize(indices.size() * 4);
 
-    #pragma omp parallel for
+#pragma omp parallel for if (indices.size() > parallel_threshold)
     for (size_t i = 0; i < indices.size(); ++i)
     {
         out[i * 4]     = positions[indices[i]][0] * AngstromsPerNm;
@@ -64,12 +60,12 @@ inline void transformPosqMM(const std::vector<Vec3> &positions,
 
 // filters the all atom symbols list based on indices we want
 inline void getSymbolsByIndex(const std::vector<char> &symbols,
-                              const std::vector<int> &indices,
-                              std::vector<char> &out)
+                              const std::vector<int>  &indices,
+                              std::vector<char>       &out)
 {
     out.resize(indices.size() * 2);
-    
-    #pragma omp parallel for
+
+#pragma omp parallel for if (indices.size() > parallel_threshold)
     for (size_t i = 0; i < indices.size(); ++i)
     {
         out[i * 2]     = symbols[indices[i] * 2];
@@ -78,12 +74,13 @@ inline void getSymbolsByIndex(const std::vector<char> &symbols,
 }
 
 // gets the lenghts of the periodic box sides and the angles.
-inline void getBoxInfo(const std::vector<Vec3> &positions, std::vector<double> &simBoxInfo)
+inline void getBoxInfo(const std::vector<Vec3> &positions,
+                       std::vector<double>     &simBoxInfo)
 {
     // the box will be of the size of the molecule plus a 2nm cutoff.
     double min = std::numeric_limits<double>::infinity();
     double max = -std::numeric_limits<double>::infinity();
-    
+
     for (int i = 0; i < 3; i++)
     {
         for (const auto &pos : positions)
@@ -91,14 +88,15 @@ inline void getBoxInfo(const std::vector<Vec3> &positions, std::vector<double> &
             max = std::max(max, pos[i]);
             min = std::min(min, pos[i]);
         }
-        simBoxInfo[i] = max * AngstromsPerNm - min * AngstromsPerNm + 2 * AngstromsPerNm;
+        simBoxInfo[i] =
+            max * AngstromsPerNm - min * AngstromsPerNm + 2 * AngstromsPerNm;
     }
     simBoxInfo[3] = simBoxInfo[4] = simBoxInfo[5] = 90.0;
 }
 
-inline std::pair<Vec3, Vec3> calculateBoundingBox(const std::vector<Vec3> &positions,
-                                                  const std::vector<int> &Indices,
-                                                  double bbCutoff)
+inline std::pair<Vec3, Vec3>
+calculateBoundingBox(const std::vector<Vec3> &positions,
+                     const std::vector<int> &Indices, double bbCutoff)
 {
     Vec3 cutoff    = {bbCutoff, bbCutoff, bbCutoff};
     Vec3 minBounds = {std::numeric_limits<double>::max(),
@@ -120,13 +118,14 @@ inline std::pair<Vec3, Vec3> calculateBoundingBox(const std::vector<Vec3> &posit
     return {minBounds - cutoff, maxBounds + cutoff};
 }
 
-bool isPointInsideBoundingBox(const Vec3 &point, const std::pair<Vec3, Vec3> &boundingBox)
+inline bool isPointInsideBoundingBox(const Vec3                  &point,
+                                     const std::pair<Vec3, Vec3> &boundingBox)
 {
     // returns false if a point is outside of the bounding box
     const auto &[minBounds, maxBounds] = boundingBox;
-    for (int i=0;i<3; i++)
+    for (int i = 0; i < 3; i++)
     {
-        if ( (point[i] < minBounds[i]) || (point[i] > maxBounds[i]))
+        if ((point[i] < minBounds[i]) || (point[i] > maxBounds[i]))
         {
             return false;
         }
@@ -137,18 +136,18 @@ bool isPointInsideBoundingBox(const Vec3 &point, const std::pair<Vec3, Vec3> &bo
 // this function is supposed to filter the relevant MM atoms,
 // which should considerably speed up the calculations on the PuReMD side
 //  This function is O(n)
-inline void filterMMAtomsOMP(const std::vector<Vec3> &positions,
-                             const std::vector<int> &mmIndices,
-                             const std::pair<Vec3, Vec3> &bbCog,
-                             std::vector<int> &relevantIndices)
+inline void filterMMAtoms(const std::vector<Vec3>     &positions,
+                          const std::vector<int>      &mmIndices,
+                          const std::pair<Vec3, Vec3> &bbCog,
+                          std::vector<int>            &relevantIndices)
 {
-    const int numThreads = omp_get_num_threads();
+    const int                     numThreads = omp_get_num_threads();
     std::vector<std::vector<int>> localIndices(numThreads);
 
     // Parallel section to filter indices
 #pragma omp parallel num_threads(numThreads)
     {
-        int threadId = omp_get_thread_num();
+        int               threadId = omp_get_thread_num();
         std::vector<int> &localVec = localIndices[threadId];
 
         // Process each index in mmIndices
@@ -167,10 +166,10 @@ inline void filterMMAtomsOMP(const std::vector<Vec3> &positions,
     for (const auto &localVec : localIndices)
     {
         // Add each local vector's elements to relevantIndices
-        relevantIndices.insert(relevantIndices.end(), localVec.begin(), localVec.end());
+        relevantIndices.insert(relevantIndices.end(), localVec.begin(),
+                               localVec.end());
     }
 }
-
 
 ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce &owner)
     : CustomCPPForceImpl(owner), owner(owner)
@@ -181,9 +180,9 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce &owner)
 
     for (int i = 0; i < owner.getNumAtoms(); ++i)
     {
-        int particle;
-        char symbol[2];
-        int isqm;
+        int    particle;
+        char   symbol[2];
+        int    isqm;
         double charge;
         owner.getParticleParameters(i, particle, symbol, charge, isqm);
         if (isqm)
@@ -196,58 +195,57 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce &owner)
         {
             mmParticles.emplace_back(particle);
         }
-        // instead of MM symbols, because we have to filter this regularly
         AtomSymbols.emplace_back(symbol[0]);
         AtomSymbols.emplace_back(symbol[1]);
         charges.emplace_back(charge);
     }
 }
 
-double ReaxffForceImpl::computeForce(ContextImpl &context,
-                                             const std::vector<Vec3> &positions,
-                                             std::vector<Vec3> &forces)
+double ReaxffForceImpl::computeForce(ContextImpl             &context,
+                                     const std::vector<Vec3> &positions,
+                                     std::vector<Vec3>       &forces)
 {
-    // need to seperate positions
-    // next we need to seperate and flatten the QM/MM positions and convert to AA
     int N     = owner.getNumAtoms();
     int numQm = qmParticles.size();
+
     std::vector<double> qmPos, mmPos_q;
-    // get the box size. move this into a function
     std::vector<double> simBoxInfo(6);
+
+    // box info for reaxff
     getBoxInfo(positions, simBoxInfo);
-    
-    // flatten relevant qm positions 
+
+    // split QM atom positions and MM atom positions + charges
     transformPosQM(positions, qmParticles, qmPos);
 
     // get relevant MM indices from a bounding box sorrounding the ReaxFF atoms
-    //  ~1nm makes total sense as it is the upper taper radius, so interactions
-    //  will be 0 further away anyways
+    //  ~1nm makes sense as it is the upper taper radius in the ReaxFF
+    //  nonbondonded potentials
+    double                bbCutoff = 1.0;
+    std::pair<Vec3, Vec3> bbCog =
+        calculateBoundingBox(positions, qmParticles, bbCutoff);
+
     std::vector<int> relevantMMIndices;
+    filterMMAtoms(positions, mmParticles, bbCog, relevantMMIndices);
 
-    std::pair<Vec3, Vec3> bbCog = calculateBoundingBox(positions, qmParticles, bbCutoff);
-    double bbCutoff = 1.0;
-    // 1nm should be good enough
-    filterMMAtomsOMP(positions, mmParticles, bbCog, relevantMMIndices);
-    
-    std::vector<char> mmRS;
-    int numMm = relevantMMIndices.size();
+    std::vector<char> mmAtomSymbols;
+    int               numMMAtoms = relevantMMIndices.size();
 
-    getSymbolsByIndex(AtomSymbols, relevantMMIndices, mmRS);
+    getSymbolsByIndex(AtomSymbols, relevantMMIndices, mmAtomSymbols);
     transformPosqMM(positions, charges, relevantMMIndices, mmPos_q);
 
-    // OUTPUT VARIABLES
-    std::vector<double> qmForces(numQm * 3, 0), mmForces(numMm * 3, 0);
+    // OUTPUT
+    std::vector<double> qmForces(numQm * 3, 0), mmForces(numMMAtoms * 3, 0);
     std::vector<double> qmQ(numQm, 0);
+    double              energy;
 
-    double energy;
+    Interface.getReaxffPuremdForces(numQm, qmSymbols, qmPos, numMMAtoms,
+                                    mmAtomSymbols, mmPos_q, simBoxInfo,
+                                    qmForces, mmForces, qmQ, energy);
 
-    Interface.getReaxffPuremdForces(
-        numQm, qmSymbols, qmPos, numMm, mmRS, mmPos_q, simBoxInfo, qmForces, mmForces, qmQ, energy);
-
-    // merge the qm and mm forces, additionally transform the scale
+    // Merge QM and MM forces
     std::vector<Vec3> transformedForces(owner.getNumAtoms(), {0.0, 0.0, 0.0});
 
-    #pragma omp parallel for
+#pragma omp parallel for if (qmParticles.size() > parallel_threshold)
     for (size_t i = 0; i < qmParticles.size(); ++i)
     {
         transformedForces[qmParticles[i]][0] = qmForces[3 * i];
@@ -255,7 +253,7 @@ double ReaxffForceImpl::computeForce(ContextImpl &context,
         transformedForces[qmParticles[i]][2] = qmForces[3 * i + 2];
     }
 
-    #pragma omp parallel for
+#pragma omp parallel for if (relevantMMIndices.size() > parallel_threshold)
     for (size_t i = 0; i < relevantMMIndices.size(); ++i)
     {
         transformedForces[relevantMMIndices[i]][0] = mmForces[i * 3];
@@ -263,13 +261,11 @@ double ReaxffForceImpl::computeForce(ContextImpl &context,
         transformedForces[relevantMMIndices[i]][2] = mmForces[i * 3 + 2];
     }
 
-    #pragma omp parallel for
+#pragma omp parallel for if (AtomSymbols.size() > parallel_threshold)
     for (size_t i = 0; i < forces.size(); ++i)
     {
-        forces[i] = -transformedForces[i] * HartreeToKCalPerMole * BohrToNm ;
+        forces[i] = -transformedForces[i] * HartreeToKCalPerMole * BohrToNm;
     }
 
-    // done
-    // kCal -> kJ and factor...
     return energy * KJPerKcal;
 }
