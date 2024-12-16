@@ -14,3 +14,20 @@ Getting Help
 ------------
 
 Need Help? Check out the [documentation](http://docs.openmm.org/) and [discussion forums](https://simtk.org/forums/viewforum.php?f=161).
+
+
+## My contribution to OpenMM - A ReaxFF Plugin
+
+This repository includes the reaxff plugin, which I developed to extend OpenMM's capabilities to be able to run Hybrid ReaxFF/MM simulations.
+Due to limitations of my time (this project is part of my masters thesis) I used the already available PuReMD implementation of ReaxFF.
+
+
+PuReMD-ReaxFF is limited to CPU computation only, some parts allow to use OpenMPI, and I also parallelized most of the code that processes data between OpenMM and ReaxFF. The useage of the plugin is straightforward, ReaxFF is implemented as an extra force. The user has to define reactive and non-reactive atoms for it to work and pay close attention to remove any not wanted classical MM forces and constraints from the ReaxFF region.
+
+Once the system has been set up the simulation workflow is as usual, but the time step should be kept below 0.25fs, as recommended by ReaxFF.
+
+
+For this initial version of the plugin I did not implement link atoms yet.
+
+
+
