@@ -47,6 +47,7 @@ int validateForce()
 
     system.addParticle(16.0);
     system.addParticle(16.0);
+
     VerletIntegrator integrator(0.01);
     ReaxffForce     *forceField = new ReaxffForce(CONTROL, FFIELD);
 
@@ -64,12 +65,37 @@ int validateForce()
     context.setPositions(positions);
 
     {
-        integrator.step(100);
+        // To check the validity of the forces, we compare the analytical forces to 
+        // forces obtained by finite differences after displacing an atom along an axis
+        // This test is needed because there are many inconsistencies in the comments
+        // in the source of ReaxFF-PuReMD regarding units of the output/input variables.
+        
+        const double dx = 1e-8;
+
         State state = context.getState(State::Forces | State::Energy);
         const vector<Vec3> &forces = state.getForces();
         const double        energy = state.getPotentialEnergy();
 
-        std::cout << energy << std::endl;
+        
+        std::cout <<  "Energy: " << energy << std::endl;
+
+        positions[0][1]+=dx/2;
+
+        context.setPositions(positions);
+        State state1 = context.getState(State::Forces | State::Energy);
+        const double        e_f = state1.getPotentialEnergy();
+
+
+        positions[0][1]-=dx;
+        context.setPositions(positions);
+        State state2 = context.getState(State::Forces | State::Energy);
+        const double        e_b = state2.getPotentialEnergy(); 
+        
+        const double f = -(e_f - e_b)/dx;
+
+        std::cout<<"Analyitical force: " << forces[0][1] << std::endl;
+        std::cout << "Central difference: " << f << std::endl;
+        ASSERT_EQUAL_TOL(forces[0][1], f, TOL);
     }
     return 0;
 }

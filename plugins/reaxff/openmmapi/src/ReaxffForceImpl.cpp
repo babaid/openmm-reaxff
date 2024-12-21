@@ -14,10 +14,6 @@
 using namespace OpenMM;
 using namespace std;
 
-constexpr double HartreeToKCalPerMole = 627.509474;
-constexpr double BohrToNm             = 0.0529177249;
-constexpr double ProtonToCoulomb      = 1.60217663E-19;
-
 constexpr size_t parallel_threshold = 100;
 
 // flattens the QM atom positions, converts them to angstroms and sets their
@@ -54,7 +50,7 @@ inline void transformPosqMM(const std::vector<Vec3>   &positions,
         out[i * 4]     = positions[indices[i]][0] * AngstromsPerNm;
         out[i * 4 + 1] = positions[indices[i]][1] * AngstromsPerNm;
         out[i * 4 + 2] = positions[indices[i]][2] * AngstromsPerNm;
-        out[i * 4 + 3] = charges[indices[i]] * ProtonToCoulomb;
+        out[i * 4 + 3] = charges[indices[i]];
     }
 }
 
@@ -200,7 +196,6 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce &owner)
         charges.emplace_back(charge);
     }
 }
-
 double ReaxffForceImpl::computeForce(ContextImpl             &context,
                                      const std::vector<Vec3> &positions,
                                      std::vector<Vec3>       &forces)
@@ -241,7 +236,6 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
     Interface.getReaxffPuremdForces(numQm, qmSymbols, qmPos, numMMAtoms,
                                     mmAtomSymbols, mmPos_q, simBoxInfo,
                                     qmForces, mmForces, qmQ, energy);
-
     // Merge QM and MM forces
     std::vector<Vec3> transformedForces(owner.getNumAtoms(), {0.0, 0.0, 0.0});
 
@@ -264,8 +258,8 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
 #pragma omp parallel for if (AtomSymbols.size() > parallel_threshold)
     for (size_t i = 0; i < forces.size(); ++i)
     {
-        forces[i] = -transformedForces[i] * HartreeToKCalPerMole * BohrToNm;
+        forces[i] = -transformedForces[i]*10;
     }
 
-    return energy * KJPerKcal;
+    return energy;
 }

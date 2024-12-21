@@ -1199,29 +1199,6 @@ int set_custom_charge_constraints( const void * const handle,
     return ret;
 }
 
-/*This function changes the dissipation energy of  every two body parameter in the system. 
-* The formula is based on the boltzmann factors: \frac{E_{dis}^{0}}{T_{eff}} = \frac{E_{dis}^{1}}{T_{0}}.
-*/
-int set_edt_qmmm(const void * const handle, const double * const t_init_per_teff)
-{
-    int ret;
-    spuremd_handle* spmd_handle;
-    ret = SPUREMD_FAILURE;
-    if (handle != NULL)
-    {
-        spmd_handle = (spuremd_handle*) handle;
-        int N = spmd_handle->system->reax_param.num_atom_types;
-        for (int i=0; i<N; i++)
-        {
-            for(int j =0; j<N; j++)
-            {
-                spmd_handle->system->reax_param.tbp[i][j].De_s *= *t_init_per_teff; 
-            }
-        }
-        ret = SPUREMD_SUCCESS;
-    }
-    return ret;
-}
 
 #if defined(QMMM)
 /* Allocate top-level data structures and parse input files
@@ -1280,6 +1257,7 @@ void * setup_qmmm( int qm_num_atoms, const char * const qm_symbols,
         x[2] = qm_pos[3 * i + 2];
 
         Fit_to_Periodic_Box( &spmd_handle->system->box, x );
+
         spmd_handle->workspace->orig_id[i] = i + 1;
         element[0] = toupper( qm_symbols[2 * i] );
         element[1] = toupper( qm_symbols[2 * i + 1] );
@@ -1690,5 +1668,4 @@ int get_atom_charges_qmmm( const void * const handle, double * const qm_q,
 
     return ret;
 }
-
 #endif

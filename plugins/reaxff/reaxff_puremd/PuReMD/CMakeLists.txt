@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.8.1)
 project(reaxff_puremd_ExternalProject)
 
 include(ExternalProject)
+
 if (OPENMP)
-	message(STATUS "Compiling ReaxFF PuReMD with OpenMP enabled.")
 	set(reaxff_puremd_configure_options --libdir=${CMAKE_INSTALL_PREFIX}/lib --enable-openmp=yes --enable-qmmm=yes CC=${CMAKE_C_COMPILER})
 else()
 	set(reaxff_puremd_configure_options --libdir=${CMAKE_INSTALL_PREFIX}/lib --enable-openmp=no --enable-serial=yes --enable-qmmm=yes CC=${CMAKE_C_COMPILER})

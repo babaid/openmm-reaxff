@@ -11,6 +11,7 @@ class PuremdInterface
 {
   public:
     PuremdInterface();
+    ~PuremdInterface();
     /**
      * Set the input files for ReaxFF-PuReMD
      *
