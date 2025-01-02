@@ -2,5 +2,6 @@
 #define OPENMM_REAXFF_H_
 
 #include "openmm/ReaxffForce.h"
+#include "openmm/CentroidSphericalPotentialForce.h"
 
 #endif /*OPENMM_REAXFF_H_*/
