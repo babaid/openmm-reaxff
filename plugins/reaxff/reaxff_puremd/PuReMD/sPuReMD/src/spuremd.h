@@ -100,6 +100,9 @@ int get_atom_forces_qmmm( const void * const, double * const,
         double * const );
 
 int get_atom_charges_qmmm( const void * const, double * const, double * const );
+
+int set_bond_strength(const void * const,  double);
+
 #endif
 
 #if defined(__cplusplus)

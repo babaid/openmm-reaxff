@@ -23,6 +23,7 @@ void PuremdInterface::setInputFileNames(const std::string &ffieldFilename,
 }
 
 void PuremdInterface::getReaxffPuremdForces(
+    double factor,
     int num_qm_atoms, const std::vector<char> &qm_symbols,
     const std::vector<double> &qm_pos, int num_mm_atoms,
     const std::vector<char> &mm_symbols, const std::vector<double> &mm_pos_q,
@@ -49,7 +50,9 @@ void PuremdInterface::getReaxffPuremdForces(
         if (0 != retPuremd)
             throw OpenMMException("Issue with PuReMD function reset_qmmm.");
     }
-
+    retPuremd = set_bond_strength(handlePuremd, factor);
+    if (0 != retPuremd)
+            throw OpenMMException("Issue with PuReMD function set_bond_strength.");
     retPuremd = simulate(handlePuremd);
 
     if (0 != retPuremd)

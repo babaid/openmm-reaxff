@@ -35,7 +35,8 @@ class PuremdInterface
      * @param qm_q The calculated charges of the QM atoms
      * @param totalEnergy The energy of the QM region
      */
-    void getReaxffPuremdForces(int                        num_qm_atoms,
+    void getReaxffPuremdForces(double factor,
+                              int                        num_qm_atoms,
                                const std::vector<char>   &qm_symbols,
                                const std::vector<double> &qm_pos,
                                int                        num_mm_atoms,
@@ -45,7 +46,6 @@ class PuremdInterface
                                std::vector<double>       &qm_forces,
                                std::vector<double>       &mm_forces,
                                std::vector<double> &qm_q, double &totalEnergy);
-
   private:
     bool                      firstCall;
     void                     *handlePuremd;

@@ -1198,8 +1198,7 @@ int set_custom_charge_constraints( const void * const handle,
 
     return ret;
 }
-
-
+#define QMMM
 #if defined(QMMM)
 /* Allocate top-level data structures and parse input files
  * for the first simulation
@@ -1667,5 +1666,36 @@ int get_atom_charges_qmmm( const void * const handle, double * const qm_q,
     }
 
     return ret;
+}
+
+
+int set_bond_strength(const void * const handle, double strength)
+{
+    int ret;
+    spuremd_handle *spmd_handle;
+    ret = SPUREMD_FAILURE;
+     if ( handle != NULL )
+    {
+
+        spmd_handle = (spuremd_handle*) handle;
+        int n = spmd_handle->system->reax_param.num_atom_types;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j<n; j++)
+            {
+
+                spmd_handle->system->reax_param.tbp[i][j].De_s*=strength;
+                spmd_handle->system->reax_param.tbp[j][i].De_s*=strength;
+                spmd_handle->system->reax_param.tbp[i][j].De_p*=strength;
+                spmd_handle->system->reax_param.tbp[j][i].De_p*=strength;
+                spmd_handle->system->reax_param.tbp[i][j].De_pp*=strength;
+                spmd_handle->system->reax_param.tbp[j][i].De_pp*=strength;
+
+            }
+        }
+        ret = SPUREMD_SUCCESS;
+    }
+    return ret;
+
 }
 #endif

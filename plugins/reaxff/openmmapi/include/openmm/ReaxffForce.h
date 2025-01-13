@@ -64,6 +64,18 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
     void getParticleParameters(int index, int &particle, char *symbol,
                                double &charge, int &isQM) const;
     /**
+     * Sets the strength of the bond dissociation energies for each possible bond
+     * 
+     * @param factor a multiplying factor
+     */
+    void setBondStrengths(double factor);
+     /**
+     * Gets the strength of the bond dissociation energies for each possible bond
+     * 
+     * @param factor a multiplying factor
+     */
+    void  getBondStrengths(double& factor) const;
+    /**
      * Set whether this force should apply periodic boundary conditions when
      * calculating displacements. Usually this is not appropriate for bonded
      * forces, but there are situations when it can be useful.
@@ -87,6 +99,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
     std::vector<bool>   allIsQM;
     std::string         ffield_file;
     std::string         control_file;
+    double _factor = 1.0;
     bool                usePeriodic;
     mutable int         numContexts, firstChangedBond, lastChangedBond;
 };

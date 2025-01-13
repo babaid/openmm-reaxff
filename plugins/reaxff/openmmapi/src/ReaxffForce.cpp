@@ -43,6 +43,16 @@ void ReaxffForce::getParticleParameters(int index, int &particle, char *symbol,
     isQM      = allIsQM[index];
 }
 
+void  ReaxffForce::setBondStrengths(double factor)
+{
+    _factor = factor;
+}
+
+void  ReaxffForce::getBondStrengths(double& factor) const
+{
+    factor = _factor;
+}
+
 ForceImpl *ReaxffForce::createImpl() const
 {
     if (numContexts == 0)

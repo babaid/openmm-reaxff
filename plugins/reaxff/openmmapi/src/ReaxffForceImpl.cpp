@@ -173,7 +173,7 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce &owner)
     std::string ffield_file, control_file;
     owner.getFileNames(ffield_file, control_file);
     Interface.setInputFileNames(ffield_file, control_file);
-
+    owner.getBondStrengths(factor);
     for (int i = 0; i < owner.getNumAtoms(); ++i)
     {
         int    particle;
@@ -202,7 +202,8 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
 {
     int N     = owner.getNumAtoms();
     int numQm = qmParticles.size();
-
+    owner.getBondStrengths(factor);
+    
     std::vector<double> qmPos, mmPos_q;
     std::vector<double> simBoxInfo(6);
 
@@ -233,7 +234,7 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
     std::vector<double> qmQ(numQm, 0);
     double              energy;
 
-    Interface.getReaxffPuremdForces(numQm, qmSymbols, qmPos, numMMAtoms,
+    Interface.getReaxffPuremdForces(factor, numQm, qmSymbols, qmPos, numMMAtoms,
                                     mmAtomSymbols, mmPos_q, simBoxInfo,
                                     qmForces, mmForces, qmQ, energy);
     // Merge QM and MM forces
