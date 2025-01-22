@@ -1,7 +1,3 @@
-//
-// Created by babaid on 05.10.24.
-//
-
 #include "openmm/ReaxffForce.h"
 #include "openmm/Force.h"
 #include "openmm/OpenMMException.h"

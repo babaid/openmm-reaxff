@@ -27,7 +27,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      */
     ReaxffForce(const std::string &ffieldfile, const std::string &controlFile, unsigned int neighborListUpdateInterval);
     /**
-     * Get the number of atoms being simulated by puremd
+     * Get the number of atoms being simulated reactively by puremd
      *
      * @return the number of atoms
      */
@@ -63,7 +63,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      */
     int addAtom(int particle, char *symbol, double charge, bool isQM);
     /**
-     * Get the bonding atom
+     * Get information about the atoms simulated by reaxff.
      *
      * @param index the index of the atoms
      * @param particle the particle index is going to be saved here

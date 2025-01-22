@@ -11,13 +11,12 @@ PuremdInterface::PuremdInterface() : firstCall(true) {}
 PuremdInterface::~PuremdInterface()
 {
     retPuremd = cleanup(handlePuremd);
-    if (0 != retPuremd)  {throw OpenMMException("Issues after cleanup in ReaxFF.");}
+    if (0 != retPuremd)  {throw OpenMMException("Error after cleanup in ReaxFF.");}
 }
 
 void PuremdInterface::setInputFileNames(const std::string &ffieldFilename,
                                         const std::string &controlFilename)
 {
-
     ffield_filename  = ffieldFilename;
     control_filename = controlFilename;
 }
@@ -47,7 +46,7 @@ void PuremdInterface::getReaxffPuremdForces(
                        mm_pos_q.data(), sim_box_info.data(),
                        ffield_filename.c_str(), control_filename.c_str());
         if (0 != retPuremd)
-            throw OpenMMException("Issue with PuReMD function reset_qmmm.");
+            throw OpenMMException("Error at PuReMD function reset_qmmm.");
     }
 
     retPuremd = simulate(handlePuremd);

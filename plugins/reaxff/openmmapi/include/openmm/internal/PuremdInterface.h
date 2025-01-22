@@ -4,6 +4,8 @@
 
 #include <string>
 #include <vector>
+
+
 /**
  * An interface class to the C API of ReaxFF-PuReMD.
  */
@@ -12,6 +14,7 @@ class PuremdInterface
   public:
     PuremdInterface();
     ~PuremdInterface();
+    
     /**
      * Set the input files for ReaxFF-PuReMD
      *
