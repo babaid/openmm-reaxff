@@ -23,8 +23,9 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      *
      * @param ffieldFile force field file.
      * @param controlFile control file.
+     * @param neighborListUpdateInterval interval of recalculation of which MM atoms are relevant to reaxFF
      */
-    ReaxffForce(const std::string &ffieldfile, const std::string &controlFile);
+    ReaxffForce(const std::string &ffieldfile, const std::string &controlFile, unsigned int neighborListUpdateInterval);
     /**
      * Get the number of atoms being simulated by puremd
      *
@@ -41,6 +42,15 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
     {
         ffieldFile  = ffield_file;
         controlFile = control_file;
+    }
+    /**
+     * Gets the interval of the neighbor list updates
+     * 
+     * @param Interval interval of recalculation of which MM atoms are relevant to reaxFF
+     */
+    void getNeighborListUpdateInterval(unsigned int& Interval) const
+    {
+      Interval = nbUpdateInterval;
     }
     /**
      * Add a bond term to the force field.
@@ -87,6 +97,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
     std::vector<bool>   allIsQM;
     std::string         ffield_file;
     std::string         control_file;
+    unsigned int nbUpdateInterval;
     bool                usePeriodic;
     mutable int         numContexts, firstChangedBond, lastChangedBond;
 };

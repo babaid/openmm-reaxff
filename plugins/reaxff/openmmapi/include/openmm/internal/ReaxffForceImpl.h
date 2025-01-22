@@ -32,6 +32,10 @@ class ReaxffForceImpl : public CustomCPPForceImpl
     std::vector<double> charges;
     const ReaxffForce  &owner;
     PuremdInterface     Interface;
+
+    unsigned int callCounter = 0;
+    unsigned int neighborlistUpdateInterval = 10;
+    std::vector<int> relevantMMIndices;
 };
 
 } // namespace OpenMM

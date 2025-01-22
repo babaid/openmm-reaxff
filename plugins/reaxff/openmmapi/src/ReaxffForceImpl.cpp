@@ -173,6 +173,7 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce &owner)
     std::string ffield_file, control_file;
     owner.getFileNames(ffield_file, control_file);
     Interface.setInputFileNames(ffield_file, control_file);
+    owner.getNeighborListUpdateInterval(neighborlistUpdateInterval);
 
     for (int i = 0; i < owner.getNumAtoms(); ++i)
     {
@@ -219,8 +220,12 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
     std::pair<Vec3, Vec3> bbCog =
         calculateBoundingBox(positions, qmParticles, bbCutoff);
 
-    std::vector<int> relevantMMIndices;
-    filterMMAtoms(positions, mmParticles, bbCog, relevantMMIndices);
+    //std::vector<int> relevantMMIndices;
+    if (callCounter%neighborlistUpdateInterval==0)
+    {
+        relevantMMIndices.clear();
+        filterMMAtoms(positions, mmParticles, bbCog, relevantMMIndices);
+    }
 
     std::vector<char> mmAtomSymbols;
     int               numMMAtoms = relevantMMIndices.size();
@@ -260,6 +265,6 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
     {
         forces[i] = -transformedForces[i]*10;
     }
-
+    callCounter++;
     return energy;
 }

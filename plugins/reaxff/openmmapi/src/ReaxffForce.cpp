@@ -13,9 +13,9 @@ using namespace OpenMM;
 using namespace std;
 
 ReaxffForce::ReaxffForce(const std::string &ffieldFile,
-                         const std::string &controlFile)
+                         const std::string &controlFile, unsigned int neighborListUpdateInterval)
     : usePeriodic(false), numContexts(0), ffield_file(ffieldFile),
-      control_file(controlFile)
+      control_file(controlFile), nbUpdateInterval(neighborListUpdateInterval)
 {
 }
 
