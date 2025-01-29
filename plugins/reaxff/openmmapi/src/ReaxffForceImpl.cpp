@@ -74,18 +74,19 @@ inline void getBoxInfo(const std::vector<Vec3> &positions,
                        std::vector<double>     &simBoxInfo)
 {
     // the box will be of the size of the molecule plus a 2nm cutoff.
-    double min = std::numeric_limits<double>::infinity();
-    double max = -std::numeric_limits<double>::infinity();
+    double min, max; 
+    double cutoff = 2.0;
 
     for (int i = 0; i < 3; i++)
     {
+        min = std::numeric_limits<double>::infinity();
+        max = -std::numeric_limits<double>::infinity();
         for (const auto &pos : positions)
         {
             max = std::max(max, pos[i]);
             min = std::min(min, pos[i]);
         }
-        simBoxInfo[i] =
-            max * AngstromsPerNm - min * AngstromsPerNm + 2 * AngstromsPerNm;
+        simBoxInfo[i] = (max - min + cutoff) * AngstromsPerNm;
     }
     simBoxInfo[3] = simBoxInfo[4] = simBoxInfo[5] = 90.0;
 }
@@ -263,8 +264,8 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
 #pragma omp parallel for if (AtomSymbols.size() > parallel_threshold)
     for (size_t i = 0; i < forces.size(); ++i)
     {
-        forces[i] = -transformedForces[i]*10;
+        forces[i] = -transformedForces[i]*AngstromsPerNm*KJPerKcal*0.1;
     }
     callCounter++;
-    return energy;
+    return energy*KJPerKcal*0.1;
 }
