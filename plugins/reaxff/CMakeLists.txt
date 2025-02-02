@@ -14,7 +14,7 @@
 
 # The source is organized into subdirectories, but we handle them all from
 # this CMakeLists file rather than letting CMake visit them as SUBDIRS.
-SET(OPENMM_SOURCE_SUBDIRS . openmmapi)
+SET(OPENMM_SOURCE_SUBDIRS . openmmapi serialization)
 
 set(OPENMM_BUILD_REAXFF_MPI TRUE CACHE BOOL "Wether to build the ReaxFF plugin with OpenMP enabled")
 if (OPENMM_BUILD_REAXFF_MPI)

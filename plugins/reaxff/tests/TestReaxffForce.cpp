@@ -5,6 +5,7 @@
 #include "openmm/Units.h"
 #include "openmm/VerletIntegrator.h"
 #include "openmm/internal/AssertionUtilities.h"
+#include "openmm/serialization/XmlSerializer.h"
 #include <iostream>
 #include <vector>
 
@@ -49,14 +50,14 @@ int validateForce()
     system.addParticle(16.0);
 
     VerletIntegrator integrator(0.01);
-    ReaxffForce     *forceField = new ReaxffForce(CONTROL, FFIELD);
+    ReaxffForce     *forceField = new ReaxffForce(CONTROL, FFIELD, 1);
 
     forceField->addAtom(0, "O", 0.0, true);
     forceField->addAtom(1, "O", 0.0, true);
 
     system.addForce(forceField);
     Context context(system, integrator, platform);
-
+    std::cout << forceField->getName();
     vector<Vec3> positions(2);
 
     positions[0] = Vec3(0, 0, 0);

@@ -13,6 +13,7 @@ ReaxffForce::ReaxffForce(const std::string &ffieldFile,
     : usePeriodic(false), numContexts(0), ffield_file(ffieldFile),
       control_file(controlFile), nbUpdateInterval(neighborListUpdateInterval)
 {
+    this->setName("ReaxFFForce");
 }
 
 int ReaxffForce::addAtom(int particle, char *symbol, double charge, bool isQM)

@@ -9,9 +9,7 @@
 #include <map>
 #include <vector>
 
-using namespace OpenMM;
 namespace OpenMM {
-
 /**
  * A class that introduces a ReaxFF/MM force.
  */
@@ -25,7 +23,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      * @param controlFile control file.
      * @param neighborListUpdateInterval interval of recalculation of which MM atoms are relevant to reaxFF
      */
-    ReaxffForce(const std::string &ffieldfile, const std::string &controlFile, unsigned int neighborListUpdateInterval);
+    ReaxffForce(const std::string &ffieldFile, const std::string &controlFile, unsigned int neighborListUpdateInterval);
     /**
      * Get the number of atoms being simulated reactively by puremd
      *
