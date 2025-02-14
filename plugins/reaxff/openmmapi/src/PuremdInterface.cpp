@@ -11,7 +11,8 @@ PuremdInterface::PuremdInterface() : firstCall(true) {}
 PuremdInterface::~PuremdInterface()
 {
     retPuremd = cleanup(handlePuremd);
-    if (0 != retPuremd)  {throw OpenMMException("Error after cleanup in ReaxFF.");}
+    if (0 != retPuremd)  
+        throw OpenMMException("Error at cleanup in PuReMD.");
 }
 
 void PuremdInterface::setInputFileNames(const std::string &ffieldFilename,
@@ -46,7 +47,7 @@ void PuremdInterface::getReaxffPuremdForces(
                        mm_pos_q.data(), sim_box_info.data(),
                        ffield_filename.c_str(), control_filename.c_str());
         if (0 != retPuremd)
-            throw OpenMMException("Error at PuReMD function reset_qmmm.");
+            throw OpenMMException("Error at reset PuReMD.");
     }
 
     retPuremd = simulate(handlePuremd);
@@ -55,9 +56,13 @@ void PuremdInterface::getReaxffPuremdForces(
         throw OpenMMException("Error at PuReMD simulation.");
     retPuremd =
         get_atom_forces_qmmm(handlePuremd, qm_forces.data(), mm_forces.data());
-    retPuremd = get_atom_charges_qmmm(handlePuremd, qm_q.data(), NULL);
-    retPuremd = get_system_info(handlePuremd, NULL, NULL, &totalEnergy, NULL,
-                                NULL, NULL);
     if (0 != retPuremd)
-        throw OpenMMException("Error in parameter extraction.");
+        throw OpenMMException("Error retrieving forces from PuReMD.");
+    retPuremd = get_atom_charges_qmmm(handlePuremd, qm_q.data(), NULL);
+    if (0 != retPuremd)
+        throw OpenMMException("Error retrieving charges from PuReMD.");
+    retPuremd = get_system_info(handlePuremd, NULL, NULL, &totalEnergy, NULL,
+                                NULL, NULL);    
+    if (0 != retPuremd)
+        throw OpenMMException("Error retrieving energy from PuReMD.");
 }
