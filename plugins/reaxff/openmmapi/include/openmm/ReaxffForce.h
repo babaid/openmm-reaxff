@@ -60,6 +60,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      * @return the index of the bond that was added
      */
     int addAtom(int particle, char *symbol, double charge, bool isQM);
+    void linkAtoms(int particle1, int particle2);
     /**
      * Get information about the atoms simulated by reaxff.
      *
