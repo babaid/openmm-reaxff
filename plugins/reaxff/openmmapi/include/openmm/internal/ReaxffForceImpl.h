@@ -30,6 +30,8 @@ class ReaxffForceImpl : public CustomCPPForceImpl
     std::vector<int>    qmParticles;
     std::vector<int>    mmParticles;
     std::vector<double> charges;
+    std::vector<Vec3> linkAtomPositions;
+    std::vector<std::pair<int, int>> linkAtoms;
     const ReaxffForce  &owner;
     PuremdInterface     Interface;
 

@@ -34,6 +34,29 @@ int ReaxffForce::addAtom(int particle, char *symbol, double charge, bool isQM)
     return allAtoms.size();
 }
 
+void ReaxffForce::addLinkAtoms(int particle1, int particle2)
+{
+    if(allIsQM[particle1] && !allIsQM[particle2] && particle1 < allAtoms.size() && particle2 < allAtoms.size() )
+    {
+        linkAtoms.push_back({particle1, particle2});
+    }
+    else
+    {
+        throw OpenMMException("Link atom can't be added.");
+    }
+}
+
+void ReaxffForce::getLinkAtoms(int index, int& particle1, int& particle2){
+    if (index < linkAtoms.size())
+    {
+        particle1 = linkAtoms[index].first;
+        particle2 = linkAtoms[index].second;
+    }
+    else{
+        throw OpenMMException("List index out of bounds.");
+    }
+}
+
 void ReaxffForce::getParticleParameters(int index, int &particle, char *symbol,
                                         double &charge, int &isQM) const
 {

@@ -60,7 +60,27 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      * @return the index of the bond that was added
      */
     int addAtom(int particle, char *symbol, double charge, bool isQM);
-    void linkAtoms(int particle1, int particle2);
+    /**
+     * Creates a link atom representing a covalent bond between a QM atom and an MM atom.
+     * 
+     * @param particle1 The index of the QM atom
+     * @param particle2 The index of the MM atom
+     */
+    void addLinkAtoms(int particle1, int particle2);
+    /**
+     * Gets the indices of two linked atoms representing a covalent bond between a QM atom and an MM atom.
+     * 
+     * @param index the index of the link atom pair
+     * @param particle1 The index of the QM atom
+     * @param particle2 The index of the MM atom
+     */
+    void getLinkAtoms(int index, int& particle1, int& particle2);
+    /**
+     * Returns the numbern of link atoms.
+     * 
+     * @return number of link atoms
+     */
+    int getNumLinkAtoms(){return linkAtoms.size();}
     /**
      * Get information about the atoms simulated by reaxff.
      *
@@ -94,6 +114,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
     std::vector<char>   allSymbols;
     std::vector<double> allCharges;
     std::vector<bool>   allIsQM;
+    std::vector<std::pair<int, int>> linkAtoms;
     std::string         ffield_file;
     std::string         control_file;
     unsigned int nbUpdateInterval;

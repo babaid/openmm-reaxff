@@ -197,6 +197,13 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce &owner)
         AtomSymbols.emplace_back(symbol[1]);
         charges.emplace_back(charge);
     }
+    for (int i = 0; i<owner.getNumLinkAtoms(); i++)
+    {
+        int particle1, particle2;
+        owner.getLinkAtoms(i, particle1, particle2);
+        linkAtoms.push_back({particle1, particle2});
+        linkAtomPositions.push_back(Vec3(0.0, 0.0, 0.0));
+    }
 }
 double ReaxffForceImpl::computeForce(ContextImpl             &context,
                                      const std::vector<Vec3> &positions,
@@ -207,12 +214,30 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
 
     std::vector<double> qmPos, mmPos_q;
     std::vector<double> simBoxInfo(6);
+    // set up link atoms...
+    
+
+    for (int i=0; i< linkAtoms.size(); i++)
+    {
+        auto link = linkAtoms[i];
+        Vec3 RL = positions[link.first] + 0.723*(positions[link.second]-positions[link.first]);
+        linkAtomPositions[i] = RL;
+    }
 
     // box info for reaxff
     getBoxInfo(positions, simBoxInfo);
 
     // split QM atom positions and MM atom positions + charges
     transformPosQM(positions, qmParticles, qmPos);
+
+    for (int i=0; i< linkAtoms.size(); i++)
+    {
+        qmPos.push_back(linkAtomPositions[i*3]);
+        qmPos.push_back(linkAtomPositions[i*3 + 1]);
+        qmPos.push_back(linkAtomPositions[i*3 + 2]);
+        qmSymbols.push_back("H");
+        qmSymbols.push_back("\0");
+    }
 
     // get relevant MM indices from a bounding box sorrounding the ReaxFF atoms
     //  ~1nm makes sense as it is the upper taper radius in the ReaxFF
@@ -233,7 +258,6 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
 
     getSymbolsByIndex(AtomSymbols, relevantMMIndices, mmAtomSymbols);
     transformPosqMM(positions, charges, relevantMMIndices, mmPos_q);
-
     // OUTPUT
     std::vector<double> qmForces(numQm * 3, 0), mmForces(numMMAtoms * 3, 0);
     std::vector<double> qmQ(numQm, 0);
@@ -252,6 +276,24 @@ double ReaxffForceImpl::computeForce(ContextImpl             &context,
         transformedForces[qmParticles[i]][1] = qmForces[3 * i + 1];
         transformedForces[qmParticles[i]][2] = qmForces[3 * i + 2];
     }
+// distribute forces of link atoms between qm and mm atom using lever rule.
+for (size_t i = 0 i < linkAtoms.size(); i++)
+{
+    auto qmAtom = linkAtoms[i].first;
+    auto mmAtom = linkAtoms[i].second;
+    Vec3 rqlv = linkAtomPositions[i] - positions[qmAtom];
+    Vec3 rmqv = positions[qmAtom] - positions[mmAtom];
+    double rql = std::sqrt(rqlv.dot(rqlv));
+    double rmq = std::sqrt(rmqv.dot(rmqv));
+    double scal = rql/rmq;
+    double nscal = 1-scal;
+    transformedForces[qmAtom][0] += nscal*qmForces[(qmParticles.size() + i) * 3];
+    transformedForces[qmAtom][1] += nscal*qmForces[(qmParticles.size() + i) * 3 + 1];
+    transformedForces[qmAtom][2] += nscal*qmForces[(qmParticles.size() + i) * 3 + 2];
+    transformedForces[mmAtom][0] += scal * qmForces[(qmParticles.size() + i) * 3];
+    transformedForces[mmAtom][1] += scal * qmForces[(qmParticles.size() + i) * 3 + 1];
+    transformedForces[mmAtom][2] += scal * qmForces[(qmParticles.size() + i) * 3 + 2];
+}
 
 #pragma omp parallel for if (relevantMMIndices.size() > parallel_threshold)
     for (size_t i = 0; i < relevantMMIndices.size(); ++i)
