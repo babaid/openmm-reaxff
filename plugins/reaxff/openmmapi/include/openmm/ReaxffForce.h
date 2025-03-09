@@ -66,7 +66,7 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      * @param particle1 The index of the QM atom
      * @param particle2 The index of the MM atom
      */
-    void addLinkAtoms(int particle1, int particle2);
+    void addLink(int particle1, int particle2);
     /**
      * Gets the indices of two linked atoms representing a covalent bond between a QM atom and an MM atom.
      * 
@@ -74,13 +74,13 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      * @param particle1 The index of the QM atom
      * @param particle2 The index of the MM atom
      */
-    void getLinkAtoms(int index, int& particle1, int& particle2);
+    void getLink(int index, int& particle1, int& particle2) const;
     /**
      * Returns the numbern of link atoms.
      * 
      * @return number of link atoms
      */
-    int getNumLinkAtoms(){return linkAtoms.size();}
+    int getNumLinks() const {return linkAtoms.size();}
     /**
      * Get information about the atoms simulated by reaxff.
      *

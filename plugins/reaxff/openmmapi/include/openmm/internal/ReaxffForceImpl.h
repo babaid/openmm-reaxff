@@ -25,6 +25,9 @@ class ReaxffForceImpl : public CustomCPPForceImpl
     const ReaxffForce &getOwner() const { return owner; }
 
   private:
+    const ReaxffForce  &owner;
+    PuremdInterface     Interface;
+
     std::vector<char>   qmSymbols;
     std::vector<char>   AtomSymbols;
     std::vector<int>    qmParticles;
@@ -32,12 +35,13 @@ class ReaxffForceImpl : public CustomCPPForceImpl
     std::vector<double> charges;
     std::vector<Vec3> linkAtomPositions;
     std::vector<std::pair<int, int>> linkAtoms;
-    const ReaxffForce  &owner;
-    PuremdInterface     Interface;
+    
 
-    unsigned int callCounter = 0;
+    
     unsigned int neighborlistUpdateInterval = 10;
     std::vector<int> relevantMMIndices;
+
+    unsigned int callCounter = 0;
 };
 
 } // namespace OpenMM

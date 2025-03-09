@@ -11,8 +11,9 @@ PuremdInterface::PuremdInterface() : firstCall(true) {}
 PuremdInterface::~PuremdInterface()
 {
     retPuremd = cleanup(handlePuremd);
-    if (0 != retPuremd)  
+    if (0 != retPuremd) {
         throw OpenMMException("Error at cleanup in PuReMD.");
+    }
 }
 
 void PuremdInterface::setInputFileNames(const std::string &ffieldFilename,
