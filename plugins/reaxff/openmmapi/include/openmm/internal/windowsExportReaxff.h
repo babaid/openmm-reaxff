@@ -24,18 +24,20 @@
 
 #ifdef _MSC_VER
     // We don't want to hear about how sprintf is "unsafe".
-    #pragma warning(disable:4996)
+    #pragma warning(disable : 4996)
     // Keep MS VC++ quiet about lack of dll export of private members.
-    #pragma warning(disable:4251)
+    #pragma warning(disable : 4251)
     #if defined(OPENMM_REAXFF_BUILDING_SHARED_LIBRARY)
         #define OPENMM_EXPORT_REAXFF __declspec(dllexport)
-    #elif defined(OPENMM_REAXFF_BUILDING_STATIC_LIBRARY) || defined(OPENMM_REAXFF_USE_STATIC_LIBRARIES)
+    #elif defined(OPENMM_REAXFF_BUILDING_STATIC_LIBRARY) || \
+        defined(OPENMM_REAXFF_USE_STATIC_LIBRARIES)
         #define OPENMM_EXPORT_REAXFF
     #else
-        #define OPENMM_EXPORT_REAXFF __declspec(dllimport)   // i.e., a client of a shared library
+        #define OPENMM_EXPORT_REAXFF \
+            __declspec(dllimport)  // i.e., a client of a shared library
     #endif
 #else
-    #define OPENMM_EXPORT_REAXFF // Linux, Mac
+    #define OPENMM_EXPORT_REAXFF  // Linux, Mac
 #endif
 
-#endif // OPENMM_WINDOWSEXPORTREAXFF_H_
+#endif  // OPENMM_WINDOWSEXPORTREAXFF_H_

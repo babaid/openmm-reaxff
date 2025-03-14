@@ -1,54 +1,60 @@
 #ifndef OPENMM_REAXFFFORCE_H_
 #define OPENMM_REAXFFFORCE_H_
 
-#include "internal/windowsExportReaxff.h"
-
-#include "openmm/Force.h"
-#include "openmm/Vec3.h"
-
 #include <map>
 #include <vector>
 
-namespace OpenMM {
+#include "internal/windowsExportReaxff.h"
+#include "openmm/Force.h"
+#include "openmm/Vec3.h"
+
+namespace OpenMM
+{
 /**
  * A class that introduces a ReaxFF/MM force.
  */
 class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
 {
-  public:
+   public:
     /**
      * Create a ReaxffForce.
      *
      * @param ffieldFile force field file.
      * @param controlFile control file.
-     * @param neighborListUpdateInterval interval of recalculation of which MM atoms are relevant to reaxFF
+     * @param neighborListUpdateInterval interval of recalculation of which MM
+     * atoms are relevant to reaxFF
      */
-    ReaxffForce(const std::string &ffieldFile, const std::string &controlFile, unsigned int neighborListUpdateInterval);
+    ReaxffForce(const std::string& ffieldFile, const std::string& controlFile,
+                unsigned int neighborListUpdateInterval);
     /**
      * Get the number of atoms being simulated reactively by puremd
      *
      * @return the number of atoms
      */
-    int getNumAtoms() const { return allAtoms.size(); }
+    int getNumAtoms() const
+    {
+        return allAtoms.size();
+    }
     /**
      * Gets the filenames used by the force field
      *
      * @param ffieldFile Force field file.
      * @param controlFile Control file.
      */
-    void getFileNames(std::string &ffieldFile, std::string &controlFile) const
+    void getFileNames(std::string& ffieldFile, std::string& controlFile) const
     {
-        ffieldFile  = ffield_file;
+        ffieldFile = ffield_file;
         controlFile = control_file;
     }
     /**
      * Gets the interval of the neighbor list updates
-     * 
-     * @param Interval interval of recalculation of which MM atoms are relevant to reaxFF
+     *
+     * @param Interval interval of recalculation of which MM atoms are relevant
+     * to reaxFF
      */
     void getNeighborListUpdateInterval(unsigned int& Interval) const
     {
-      Interval = nbUpdateInterval;
+        Interval = neighborListUpdateInterval;
     }
     /**
      * Add a bond term to the force field.
@@ -59,17 +65,19 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      * @param isQM is it reactive
      * @return the index of the bond that was added
      */
-    int addAtom(int particle, char *symbol, double charge, bool isQM);
+    int addAtom(int particle, char* symbol, double charge, bool isQM);
     /**
-     * Creates a link atom representing a covalent bond between a QM atom and an MM atom.
-     * 
+     * Creates a link atom representing a covalent bond between a QM atom and an
+     * MM atom.
+     *
      * @param particle1 The index of the QM atom
      * @param particle2 The index of the MM atom
      */
     void addLink(int particle1, int particle2);
     /**
-     * Gets the indices of two linked atoms representing a covalent bond between a QM atom and an MM atom.
-     * 
+     * Gets the indices of two linked atoms representing a covalent bond between
+     * a QM atom and an MM atom.
+     *
      * @param index the index of the link atom pair
      * @param particle1 The index of the QM atom
      * @param particle2 The index of the MM atom
@@ -77,10 +85,13 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
     void getLink(int index, int& particle1, int& particle2) const;
     /**
      * Returns the numbern of link atoms.
-     * 
+     *
      * @return number of link atoms
      */
-    int getNumLinks() const {return linkAtoms.size();}
+    int getNumLinks() const
+    {
+        return linkAtoms.size();
+    }
     /**
      * Get information about the atoms simulated by reaxff.
      *
@@ -90,8 +101,8 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      * @param charge charge of the atom
      * @param isQM is it reactive
      */
-    void getParticleParameters(int index, int &particle, char *symbol,
-                               double &charge, int &isQM) const;
+    void getParticleParameters(int index, int& particle, char* symbol,
+                               double& charge, int& isQM) const;
     /**
      * Set whether this force should apply periodic boundary conditions when
      * calculating displacements. Usually this is not appropriate for bonded
@@ -106,22 +117,22 @@ class OPENMM_EXPORT_REAXFF ReaxffForce : public Force
      */
     bool usesPeriodicBoundaryConditions() const;
 
-  protected:
-    ForceImpl *createImpl() const;
+   protected:
+    ForceImpl* createImpl() const;
 
-  private:
-    std::vector<int>    allAtoms;
-    std::vector<char>   allSymbols;
+   private:
+    std::vector<int> allAtoms;
+    std::vector<char> allSymbols;
     std::vector<double> allCharges;
-    std::vector<bool>   allIsQM;
+    std::vector<bool> allIsQM;
     std::vector<std::pair<int, int>> linkAtoms;
-    std::string         ffield_file;
-    std::string         control_file;
-    unsigned int nbUpdateInterval;
-    bool                usePeriodic;
-    mutable int         numContexts, firstChangedBond, lastChangedBond;
+    std::string ffield_file;
+    std::string control_file;
+    unsigned int neighborListUpdateInterval;
+    bool usePeriodic;
+    mutable int numContexts, firstChangedBond, lastChangedBond;
 };
 
-} // namespace OpenMM
+}  // namespace OpenMM
 
-#endif // OPENMM_REAXFFFORCE_H_
+#endif  // OPENMM_REAXFFFORCE_H_

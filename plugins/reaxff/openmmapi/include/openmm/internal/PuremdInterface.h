@@ -5,24 +5,23 @@
 #include <string>
 #include <vector>
 
-
 /**
  * An interface class to the C API of ReaxFF-PuReMD.
  */
 class PuremdInterface
 {
-  public:
+   public:
     PuremdInterface();
     ~PuremdInterface();
-    
+
     /**
      * Set the input files for ReaxFF-PuReMD
      *
      * @param ffield_filename The force field parameter file path
      * @param control_filename The control file path
      */
-    void setInputFileNames(const std::string &ffield_filename,
-                           const std::string &control_filename);
+    void setInputFileNames(const std::string& ffield_filename,
+                           const std::string& control_filename);
     /**
      * Get the forces from ReaxFF-PuReMD.
      *
@@ -38,24 +37,24 @@ class PuremdInterface
      * @param qm_q The calculated charges of the QM atoms
      * @param totalEnergy The energy of the QM region
      */
-    void getReaxffPuremdForces(int                        num_qm_atoms,
-                               const std::vector<char>   &qm_symbols,
-                               const std::vector<double> &qm_pos,
-                               int                        num_mm_atoms,
-                               const std::vector<char>   &mm_symbols,
-                               const std::vector<double> &mm_pos_q,
-                               const std::vector<double> &sim_box_info,
-                               std::vector<double>       &qm_forces,
-                               std::vector<double>       &mm_forces,
-                               std::vector<double> &qm_q, double &totalEnergy);
+    void getReaxffPuremdForces(int num_qm_atoms,
+                               const std::vector<char>& qm_symbols,
+                               const std::vector<double>& qm_pos,
+                               int num_mm_atoms,
+                               const std::vector<char>& mm_symbols,
+                               const std::vector<double>& mm_pos_q,
+                               const std::vector<double>& sim_box_info,
+                               std::vector<double>& qm_forces,
+                               std::vector<double>& mm_forces,
+                               std::vector<double>& qm_q, double& totalEnergy);
 
-  private:
-    bool                      firstCall;
-    void                     *handlePuremd;
-    int                       retPuremd;
+   private:
+    bool firstCall;
+    void* handlePuremd;
+    int retPuremd;
     const std::vector<double> sim_box_info;
-    std::string               ffield_filename;
-    std::string               control_filename;
+    std::string ffield_filename;
+    std::string control_filename;
 };
 
-#endif // OPENMM_PUREMDINTERFACE_H
+#endif  // OPENMM_PUREMDINTERFACE_H
