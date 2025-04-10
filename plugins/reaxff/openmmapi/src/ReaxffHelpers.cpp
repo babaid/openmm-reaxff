@@ -228,3 +228,23 @@ void ReaxffHelpers::addLinkAtoms(
         qmSymbols.push_back('\0');
     }
 }
+
+void ReaxffHelpers::reshapeFlattenedForces(std::vector<Vec3>& transformedForces, const std::vector<int>& indices, const std::vector<double> flattenedForces)
+{
+    #pragma omp parallel for if (indices.size() > parallel_threshold)
+    for (size_t i = 0; i < indices.size(); ++i)
+    {
+        transformedForces[indices[i]][0] = flattenedForces[3 * i];
+        transformedForces[indices[i]][1] = flattenedForces[3 * i + 1];
+        transformedForces[indices[i]][2] = flattenedForces[3 * i + 2];
+    }
+}
+
+void ReaxffHelpers::finalizeForceConversion(std::vector<Vec3>& forces, const std::vector<Vec3>& transformedForces)
+{
+    #pragma omp parallel for if (forces.size() > parallel_threshold)
+    for (size_t i = 0; i < forces.size(); ++i)
+    {
+        forces[i] = -transformedForces[i] * AngstromsPerNm * KJPerKcal * 0.1;
+    }
+}

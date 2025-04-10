@@ -81,6 +81,10 @@ void addLinkAtoms(const std::vector<std::pair<int, int>>& linkAtoms,
                   const std::vector<Vec3>& linkAtomPositions,
                   std::vector<double>& qmPos, std::vector<char>& qmSymbols);
 
+void reshapeFlattenedForces(std::vector<Vec3>& transformedForces, const std::vector<int>& indices, const std::vector<double> flattenedForces);
+
+void finalizeForceConversion(std::vector<Vec3>& forces, const std::vector<Vec3>& transformedForces);
+
 }  // namespace ReaxffHelpers
 
 #endif

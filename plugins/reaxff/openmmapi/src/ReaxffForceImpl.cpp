@@ -21,7 +21,6 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce& owner) :
     owner.getFileNames(ffield_file, control_file);
     Interface.setInputFileNames(ffield_file, control_file);
     owner.getNeighborListUpdateInterval(neighborlistUpdateInterval);
-
     for (int i = 0; i < owner.getNumAtoms(); ++i)
     {
         int particle;
@@ -49,7 +48,7 @@ ReaxffForceImpl::ReaxffForceImpl(const ReaxffForce& owner) :
         owner.getLink(i, particle1, particle2);
         linkAtoms.push_back({particle1, particle2});
         linkAtomPositions.push_back(Vec3(0.0, 0.0, 0.0));
-    }
+    }  
 }
 double ReaxffForceImpl::computeForce(ContextImpl& context,
                                      const std::vector<Vec3>& positions,
@@ -99,34 +98,20 @@ double ReaxffForceImpl::computeForce(ContextImpl& context,
     Interface.getReaxffPuremdForces(numQm, qmSymbols, qmPos, numMMAtoms,
                                     mmAtomSymbols, mmPos_q, simBoxInfo,
                                     qmForces, mmForces, qmQ, energy);
+                        
     // Merge QM and MM forces
     std::vector<Vec3> transformedForces(owner.getNumAtoms(), {0.0, 0.0, 0.0});
 
-#pragma omp parallel for if (qmParticles.size() > parallel_threshold)
-    for (size_t i = 0; i < qmParticles.size(); ++i)
-    {
-        transformedForces[qmParticles[i]][0] = qmForces[3 * i];
-        transformedForces[qmParticles[i]][1] = qmForces[3 * i + 1];
-        transformedForces[qmParticles[i]][2] = qmForces[3 * i + 2];
-    }
-
-#pragma omp parallel for if (relevantMMIndices.size() > parallel_threshold)
-    for (size_t i = 0; i < relevantMMIndices.size(); ++i)
-    {
-        transformedForces[relevantMMIndices[i]][0] = mmForces[i * 3];
-        transformedForces[relevantMMIndices[i]][1] = mmForces[i * 3 + 1];
-        transformedForces[relevantMMIndices[i]][2] = mmForces[i * 3 + 2];
-    }
+    reshapeFlattenedForces(transformedForces, qmParticles, qmForces);
+    
+    reshapeFlattenedForces(transformedForces, relevantMMIndices, mmForces);
 
     // distribute forces of link atoms between qm and mm atom using lever rule.
     distributeLinkAtomForces(linkAtoms, linkAtomPositions, positions,
                              qmParticles.size(), qmForces, transformedForces);
 
-#pragma omp parallel for if (AtomSymbols.size() > parallel_threshold)
-    for (size_t i = 0; i < forces.size(); ++i)
-    {
-        forces[i] = -transformedForces[i] * AngstromsPerNm * KJPerKcal * 0.1;
-    }
+    finalizeForceConversion(forces, transformedForces);
+    
     callCounter++;
     return energy * KJPerKcal * 0.1;
 }
